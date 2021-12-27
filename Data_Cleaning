@@ -1,0 +1,168 @@
+SELECT * FROM housing;
+
+-- Changing the Name of the columns and as the data set had the column names as Row 1
+
+ ALTER TABLE Housing RENAME COLUMN column1 TO UniqueID;
+ ALTER TABLE Housing RENAME COLUMN column2 TO ParcelID;
+ ALTER TABLE Housing RENAME COLUMN column3 TO LandUse;
+ ALTER TABLE Housing RENAME COLUMN column4 TO PropertyAddress;
+ ALTER TABLE Housing RENAME COLUMN column5 TO SaleDate;
+ ALTER TABLE Housing RENAME COLUMN column6 TO SalePrice; 
+ ALTER TABLE Housing RENAME COLUMN column7 TO LegalReference;   
+ ALTER TABLE Housing RENAME COLUMN column8 TO SoldAsVacant;  
+ ALTER TABLE Housing RENAME COLUMN column9 TO OwnerName; 
+ ALTER TABLE Housing RENAME COLUMN column10 TO OwnerAddress;  
+ ALTER TABLE Housing RENAME COLUMN column11 TO Acreage; 
+ ALTER TABLE Housing RENAME COLUMN column12 TO TaxDistrict;  
+ ALTER TABLE Housing RENAME COLUMN column13 TO LandValue;  
+ ALTER TABLE Housing RENAME COLUMN column14 TO BuildingValue;
+ ALTER TABLE Housing RENAME COLUMN column15 TO TotalValue;   
+ ALTER TABLE Housing RENAME COLUMN column16 TO YearBuilt;   
+ ALTER TABLE Housing RENAME COLUMN column17 TO Bedrooms;  
+ ALTER TABLE Housing RENAME COLUMN column18 TO FullBath;
+ ALTER TABLE Housing RENAME COLUMN column19 TO HalfBath;    
+ 
+---------------------------------------------------------------------------------
+
+-- Deleting Row 1 which was the column names 
+  
+Delete FROM housing
+WHERE LandUse = 'LandUse';
+
+---------------------------------------------------------------------------------
+
+-- Standardizing Sale Date,      
+    
+SELECT SaleDate, (SUBSTR(SaleDate,-4,4) || ' ' || SUBSTR(Saledate, 1,3)) AS Date
+FROM Housing;
+
+UPDATE Housing 
+SET SaleDate = (SUBSTR(SaleDate,-4,4) || ' ' || SUBSTR(Saledate, 1,3));
+
+Select * FROM Housing
+ORDER BY SaleDate;
+--------------------------------------------------------------------------------- 
+
+-- Updated Blank Property Addresses to NULL 
+
+UPDATE Housing 
+SET PropertyAddress = NULL 
+WHERE PropertyAddress = '';
+
+-- Populate NULL Property Address
+
+SELECT a.ParcelID,a.propertyAddress, b.ParcelID,b.propertyAddress, ISNULL (a.propertyAddress, b.propertyAddress)  FROM Housing AS a
+JOIN Housing AS b ON a.ParcelID = b.ParcelID 
+AND a.uniqueID != b.uniqueID
+WHERE a.propertyaddress IS NULL;
+
+UPDATE a
+SET a.propertyAddress = ISNULL (a.propertyAddress, b.propertyAddress)
+FROM Housing AS a
+JOIN Housing AS b ON a.ParcelID = b.ParcelID 
+AND a.uniqueID != b.uniqueID
+WHERE a.propertyaddress IS NULL;
+    
+
+-- Breaking Addresses into Individual Columns (Address City)
+
+-- Creating Substring Queries to split up address into above components 
+
+SELECT * FROM Housing;
+SELECT SubSTR(PropertyAddress,1,CHARINDEX(',',PropertyAddress)-1) AS Address 
+SELECT SubSTR(PropertyAddress,CHARINDEX(',',PropertyAddress)+1) AS CITY
+FROM Housing;
+
+-- Adding Split Address Column
+
+ALTER TABLE Housing
+ADD PropertySplitAddress;
+
+UPDATE Housing
+SET PropertySplitAddress = SubSTR(PropertyAddress,1,CHARINDEX(',',PropertyAddress)-1)
+
+-- Adding Split City Column
+
+ALTER TABLE Housing
+ADD PropertySplitCty;
+
+UPDATE Housing
+SET PropertySplitCity = SubSTR(PropertyAddress,CHARINDEX(',',PropertyAddress)+1) 
+
+-- Doing the Same as above but with Owner Address 
+
+---------------------------------------------------------------------------------
+
+-- Spliting up owner address into address, City, State 
+
+PARSENAME(REPLACE(OwnerAddress,',','.'),3) AS Address
+PARSENAME(REPLACE(OwnerAddress,',','.'),2) AS City 
+PARSENAME(REPLACE(OwnerAddress,',','.'),1) AS State 
+
+-- Adding Owner Address as Column to Table 
+ALTER TABLE Housing 
+ADD OwnerSplitAddress
+
+UPDATE Housing 
+SET OwnerSplitAddress = PARSENAME(REPLACE(OwnerAddress,',','.'),3)
+
+-- Adding Owner City as Column to Table 
+ALTER TABLE Housing 
+ADD OwnerSplitCity
+
+UPDATE Housing 
+SET OwnerSplitCity = PARSENAME(REPLACE(OwnerAddress,',','.'),2)
+
+-- Adding Owner State as Column to Table 
+ALTER TABLE Housing 
+ADD OwnerSplitState
+
+UPDATE Housing 
+SET OwnerSplitState = PARSENAME(REPLACE(OwnerAddress,',','.'),1)
+
+---------------------------------------------------------------------------------
+
+-- Change Y/N to Yes and No on SoldAsVaccant Column 
+
+UPDATE Housing 
+SET SoldAsVacant = 'Yes'
+WHERE SoldAsVacant = 'Y';
+
+UPDATE Housing 
+SET SoldAsVacant = 'No'
+WHERE SoldAsVacant = 'N';
+---------------------------------------------------------------------------------
+
+-- Removing $ from Sale Price to make everyting consistent  
+
+SELECT * FROM Housing;
+
+WITH CTE_HOUSE AS 
+(SELECT UniqueID, PropertyAddress, SalePrice FROM Housing
+WHERE SalePrice  LIKE '%$%')
+
+SELECT * FROM CTE_House;
+
+UPDATE Housing 
+SET Saleprice = TRIM(Saleprice,'$');
+
+SELECT Row_Number() OVER (Order by SalePrice), Saleprice FROM Housing;
+---------------------------------------------------------------------------------
+
+-- Removing Duplicates 
+
+WITH CTE_Duplicate AS(
+
+SELECT *, Row_Number() OVER (Partition By ParcelID, Propertyaddress, SalePrice, OwnerAddress) AS RowNum
+FROM Housing)
+
+SELECT * FROM CTE_Duplicate
+WHERE RowNUM = 1;
+---------------------------------------------------------------------------------
+
+-- Removing Unused Columns
+
+SELECT * FROM Housing;
+
+ALTER TABLE Housing 
+DROP Column TaxDistrict;
