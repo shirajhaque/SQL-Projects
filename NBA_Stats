@@ -1,0 +1,168 @@
+-- Changing Column headers 
+
+ALTER TABLE Players Rename Column Column1 TO Name;
+ALTER TABLE Players Rename Column Column2 TO StartYear;
+ALTER TABLE Players Rename Column Column3 TO EndYear;
+ALTER TABLE Players Rename Column Column4 TO Position;
+ALTER TABLE Players Rename Column Column5 TO height;
+ALTER TABLE Players Rename Column Column6 TO weight;
+ALTER TABLE Players Rename Column Column7 TO birthday; 
+ALTER TABLE Players Rename Column Column8 TO college;
+
+DELETE FROM Players
+WHERE Name = 'name';
+
+ALTER TABLE Stats DROP COLUMN Column46
+
+SELECT * FROM Stats;
+ALTER TABLE Stats Rename Column Column2 TO Year;
+ALTER TABLE Stats Rename Column Column3 TO Player;
+ALTER TABLE Stats Rename Column Column4 TO Position;
+ALTER TABLE Stats Rename Column Column5 TO Age;
+ALTER TABLE Stats Rename Column Column6 TO Team;
+ALTER TABLE Stats Rename Column Column7 TO Games; 
+ALTER TABLE Stats Rename Column Column11 TO ShootingPercent;
+
+ALTER TABLE Stats Rename Column Column32 TO FieldGoalsMade;
+ALTER TABLE Stats Rename Column Column33 TO FieldGoalsAttempted;
+ALTER TABLE Stats Rename Column Column34 TO FieldGoalPercent;
+ALTER TABLE Stats Rename Column Column35 TO ThreesMade;
+ALTER TABLE Stats Rename Column Column36 TO ThreesTake;
+ALTER TABLE Stats Rename Column Column37 TO ThreePointPercent; 
+ALTER TABLE Stats Rename Column Column38 TO TwosMade;
+
+ALTER TABLE Stats Rename Column Column39 TO TwosAttempted;
+ALTER TABLE Stats Rename Column Column40 TO TwopointPercent;
+ALTER TABLE Stats Rename Column Column42 TO FreeThrowsMade;
+ALTER TABLE Stats Rename Column Column43 TO FreeThrowsAttempted;
+ALTER TABLE Stats Rename Column Column44 TO FreeThrowPercent;
+ALTER TABLE Stats Rename Column Column47 TO Rebounds; 
+ALTER TABLE Stats Rename Column Column48 TO Assists;
+
+ALTER TABLE Stats Rename Column Column49 TO Steals;
+ALTER TABLE Stats Rename Column Column50 TO Blocks;
+ALTER TABLE Stats Rename Column Column51 TO Turnovers;
+ALTER TABLE Stats Rename Column Column52 TO Fouls;
+ALTER TABLE Stats Rename Column Column53 TO Points;
+
+DELETE FROM Stats
+WHERE Year = 'Year';
+
+-----------------------------------------------------------------------
+
+-- Making Player positions on both tables equivalent. 
+
+UPDATE Players
+SET Position = 'F-C'
+WHERE Position = 'C-F';
+
+UPDATE Players
+SET Position = 'G-F'
+WHERE Position = 'F-G';
+
+UPDATE Stats
+SET Position = 'F-C'
+WHERE Position = 'C-F';
+
+UPDATE Stats
+SET Position = 'G-F'
+WHERE Position = 'F-G';
+
+UPDATE Stats
+SET Position = 'F-C'
+WHERE Position = 'C-PF';
+
+UPDATE Stats
+SET Position = 'F-C'
+WHERE Position = 'C-SF';
+
+UPDATE Stats
+SET Position = 'F'
+WHERE Position = 'PF';
+
+UPDATE Stats
+SET Position = 'F'
+WHERE Position = 'SF';
+
+UPDATE Stats
+SET Position = 'F-C'
+WHERE Position = 'PF-C';
+
+UPDATE Stats
+SET Position = 'F'
+WHERE Position = 'PF-SF';
+
+UPDATE Stats
+SET Position = 'G'
+WHERE Position = 'PG';
+
+UPDATE Stats
+SET Position = 'G-F'
+WHERE Position = 'PG-SF';
+
+UPDATE Stats
+SET Position = 'G'
+WHERE Position = 'PG-SG';
+
+UPDATE Stats
+SET Position = 'G-F'
+WHERE Position = 'SF-PG';
+
+UPDATE Stats
+SET Position = 'F'
+WHERE Position = 'SF-PF';
+
+UPDATE Stats
+SET Position = 'G-F'
+WHERE Position = 'SF-SG';
+
+UPDATE Stats
+SET Position = 'G'
+WHERE Position = 'SG';
+
+UPDATE Stats
+SET Position = 'G-F'
+WHERE Position = 'SG-PF';
+
+UPDATE Stats
+SET Position = 'G'
+WHERE Position = 'SG-PG';
+
+UPDATE Stats
+SET Position = 'G-F'
+WHERE Position = 'SG-SF';
+
+SELECT Position, COUNT(*) FROM Players
+GROUP BY Position;
+
+SELECT Position, COUNT(*) FROM Stats
+GROUP BY Position;
+
+-----------------------------------------------------------------------
+
+-- Displaying the highest player point averages based on a minimum of 50 games played 
+
+SELECT Name,PPG,RPG,APG,GAMES, Year FROM (
+    SELECT Players.Name, ROUND((Stats.Points) /Stats.Games,1)  AS PPG, ROUND(Stats.Rebounds/Stats.Games,1) AS RPG,  ROUND(Stats.Assists/Stats.Games,1) AS APG, Stats.Games, stats.Year FROM Players
+    JOIN Stats ON players.Name = stats.Player AND players.Position = Stats.Position)
+
+WHERE GAMES > 50
+ORDER BY PPG DESC;
+
+-- Displaying the highest player Rebound averages based on a minimum of 50 games played 
+
+SELECT Name,PPG,RPG,APG,GAMES, Year FROM (
+    SELECT Players.Name, ROUND((Stats.Points) /Stats.Games,1)  AS PPG, ROUND(Stats.Rebounds/Stats.Games,1) AS RPG,  ROUND(Stats.Assists/Stats.Games,1) AS APG, Stats.Games, stats.Year FROM Players
+    JOIN Stats ON players.Name = stats.Player AND players.Position = Stats.Position)
+
+WHERE GAMES > 50
+ORDER BY RPG DESC;
+
+-- Displaying the highest player Assist averages based on a minimum of 50 games played 
+
+SELECT Name,PPG,RPG,APG,GAMES, Year FROM (
+    SELECT Players.Name, ROUND((Stats.Points) /Stats.Games,1)  AS PPG, ROUND(Stats.Rebounds/Stats.Games,1) AS RPG,  ROUND(Stats.Assists/Stats.Games,1) AS APG, Stats.Games, stats.Year FROM Players
+    JOIN Stats ON players.Name = stats.Player AND players.Position = Stats.Position)
+
+WHERE GAMES > 50
+ORDER BY APG DESC;
